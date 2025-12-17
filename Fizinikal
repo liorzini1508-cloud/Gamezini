@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fizikal Block Blast Pro</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-red: #FF4757;
+            --bg-color: #1E1E2E;
+            --game-bg: #282846;
+            --text-color: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Rubik', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .header {
+            width: 100%;
+            height: 60px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+        .logo span { color: var(--brand-red); }
+
+        .score-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .main-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            padding: 10px;
+        }
+
+        canvas#tetris {
+            background-color: var(--game-bg);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.2);
+            display: block;
+        }
+
+        .next-piece-wrapper {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.05);
+            height: 60px;
+            flex-shrink: 0;
+        }
+        
+        .next-label { 
+            font-size: 14px; 
+            opacity: 0.7; 
+            font-weight: 500;
+        }
+
+        .controls-area {
+            height: 150px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to top, rgba(30,30,46,1) 20%, rgba(30,30,46,0));
+            flex-shrink: 0;
+            padding-bottom: 20px;
+            z-index: 20;
+        }
+
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            width: 280px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 14px;
+            height: 55px;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-rotate {
+            background: var(--brand-red);
+            box-shadow: 0 4px 0 #c0392b;
+            grid-column: 2;
+            grid-row: 1;
+            font-size: 28px;
+        }
+        
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(30, 30, 46, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.3s;
+        }
+        
+        .hidden { opacity: 0; pointer-events: none; }
+
+        .btn-start {
+            background: linear-gradient(45deg, #FF4757, #FF6B81);
+            color: white;
+            padding: 15px 50px;
+            font-size: 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 900;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(255, 71, 87, 0.4);
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        
+        #overlay-title { font-size: 36px; margin-bottom: 0; }
+        #overlay-msg { font-size: 18px; opacity: 0.8; margin-top: 10px; padding: 0 20px; line-height: 1.5; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="score-box">💎 <span id="score">0</span></div>
+        <div class="logo">fizikal<span>.</span></div>
+    </div>
+
+    <div class="main-layout" id="game-container">
+        <canvas id="tetris"></canvas>
+        <div class="next-piece-wrapper">
+            <span class="next-label">הבא:</span>
+            <canvas id="next" width="70" height="40"></canvas>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="d-pad">
+            <button class="btn btn-rotate" id="btn-rotate">↻</button>
+            <button class="btn btn-left" id="btn-left">◀</button>
+            <button class="btn btn-down" id="btn-down">▼</button>
+            <button class="btn btn-right" id="btn-right">▶</button>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay">
+        <h1 id="overlay-title">Fizikal Pro</h1>
+        <p id="overlay-msg">מוכנים למשמרת?</p>
+        <p id="score-display" style="display:none; font-size: 24px; font-weight: bold; color: #FF4757; margin-top: 5px;">ניקוד: <span id="final-score">0</span></p>
+        <button class="btn-start" onclick="startGame()">התחל עבודה</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('next');
+        const nextContext = nextCanvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMsg = document.getElementById('overlay-msg');
+        const scoreDisplay = document.getElementById('score-display');
+        
+        const COLS = 12;
+        const ROWS = 20;
+        let BLOCK_SIZE = 20;
+
+        const COLORS = [
+            null,
+            '#FF4757', '#2ED573', '#1E90FF', '#FFA502', 
+            '#3742fa', '#ff6b81', '#00d2d3',
+        ];
+
+        // הרשימה המלאה והמעודכנת
+        const TOPICS = [
+            "חיבור ל-Move", "משימות", "מתעניינים", "לידים", 
+            "הקמת פעילות", "שליחת טפסים", "זיהוי פנים בכניסה", 
+            "שליחת הודעות", "הוספת מנוי", "ביטול מנוי", 
+            "שינוי סטטוס משימה", "הוספת עמדת פיזיקל", "יצירת תקנון", 
+            "הוספת לקוח", "לשלוח וואטסאפ ללקוח", "גבייה", 
+            "נתוני הכנסות", "כמות כניסות", "נוכחות עובדים", 
+            "פנייה לתמיכת פיזיקל", "בקרת כניסה", "שיוך צ'יפ ללקוח", 
+            "ביטול שיעור", "זיכויים ללקוחות", "עוזר Ai", 
+            "תמיכה אנושית", "אוטומציות", "מיני סייט", 
+            "כניסת QR", "אפליקציה ללקוחות", "לינקים לרכישה", 
+            "הנהלת חשבונות", "הטבות לסליקה", "ניסיון 30 שנה"
+        ];
+
+        let arena = createMatrix(COLS, ROWS);
+
+        function resizeGame() {
+            const container = document.getElementById('game-container');
+            const availableHeight = container.clientHeight - 80; 
+            const availableWidth = container.clientWidth - 20;
+            const sizeByHeight = Math.floor(availableHeight / ROWS);
+            const sizeByWidth = Math.floor(availableWidth / COLS);
+            BLOCK_SIZE = Math.max(15, Math.min(sizeByHeight, sizeByWidth));
+            canvas.width = COLS * BLOCK_SIZE;
+            canvas.height = ROWS * BLOCK_SIZE;
+            if (isPaused && player.matrix) draw();
+        }
+
+        const player = {
+            pos: {x: 0, y: 0},
+            matrix: null,
+            score: 0,
+            label: "",
+            colorIdx: 1,
+            next: null,
+            nextLabel: "",
+            nextColor: 1
+        };
+
+        let lastTime = 0;
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let isPaused = true;
+        let lastMoveTime = 0;
+        const MOVE_DELAY = 80;
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) matrix.push(new Array(w).fill(0));
+            return matrix;
+        }
+
+        function createPiece(type) {
+            if (type === 'I') return [[0, 1, 0, 0],[0, 1, 0, 0],[0, 1, 0, 0],[0, 1, 0, 0]];
+            if (type === 'L') return [[0, 2, 0],[0, 2, 0],[0, 2, 2]];
+            if (type === 'J') return [[0, 3, 0],[0, 3, 0],[3, 3, 0]];
+            if (type === 'O') return [[4, 4],[4, 4]];
+            if (type === 'Z') return [[5, 5, 0],[0, 5, 5],[0, 0, 0]];
+            if (type === 'S') return [[0, 6, 6],[6, 6, 0],[0, 0, 0]];
+            if (type === 'T') return [[0, 7, 0],[7, 7, 7],[0, 0, 0]];
+            return [[4,4],[4,4]]; 
+        }
+
+        function drawBlock(ctx, x, y, colorIdx, size) {
+            if (!COLORS[colorIdx]) return;
+            const baseColor = COLORS[colorIdx];
+            const px = x * size;
+            const py = y * size;
+            
+            let grd = ctx.createLinearGradient(px, py, px + size, py + size);
+            grd.addColorStop(0, '#ffffff');
+            grd.addColorStop(0.3, baseColor);
+            grd.addColorStop(1, baseColor);
+            
+            ctx.fillStyle = grd;
+            ctx.fillRect(px, py, size, size);
+            
+            ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px, py, size, size);
+            
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            ctx.fillRect(px + 2, py + 2, size - 4, size/3);
+        }
+
+        function draw() {
+            context.fillStyle = 'rgba(40, 40, 70, 0.95)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            arena.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) drawBlock(context, x, y, value, BLOCK_SIZE);
+                });
+            });
+
+            if (player.matrix) {
+                player.matrix.forEach((row, y) => {
+                    row.forEach((value, x) => {
+                        if (value !== 0) {
+                            drawBlock(context, x + player.pos.x, y + player.pos.y, player.colorIdx, BLOCK_SIZE);
+                        }
+                    });
+                });
+                drawLabel(context, player.label, player.pos.x, player.pos.y, player.matrix, BLOCK_SIZE);
+            }
+        }
+
+        function drawLabel(ctx, text, posX, posY, matrix, size) {
+            const centerY = (posY * size) - 10;
+            const centerX = (posX * size) + (matrix[0].length * size / 2);
+            
+            // פונט עבה וגדול יותר
+            ctx.font = "900 13px 'Rubik', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            const textWidth = ctx.measureText(text).width + 12;
+            
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // כהה יותר לקונטרסט
+            ctx.beginPath();
+            ctx.roundRect(centerX - textWidth/2, centerY - 11, textWidth, 22, 6);
+            ctx.fill();
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(text, centerX, centerY);
+        }
+
+        function drawNext() {
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            if (!player.next) return;
+            const smallBlock = 10;
+            const offsetX = (nextCanvas.width - player.next[0].length * smallBlock) / 2;
+            const offsetY = (nextCanvas.height - player.next.length * smallBlock) / 2;
+            player.next.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        nextContext.fillStyle = COLORS[player.nextColor];
+                        nextContext.fillRect(x * smallBlock + offsetX, y * smallBlock + offsetY, smallBlock - 1, smallBlock - 1);
+                    }
+                });
+            });
+        }
+
+        function merge(arena, player) {
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        arena[y + player.pos.y][x + player.pos.x] = player.colorIdx;
+                    }
+                });
+            });
+        }
+
+        function rotate(matrix, dir) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) matrix.forEach(row => row.reverse());
+            else matrix.reverse();
+        }
+
+        function playerDrop() {
+            player.pos.y++;
+            if (collide(arena, player)) {
+                player.pos.y--;
+                merge(arena, player);
+                playerReset();
+                arenaSweep();
+                updateScore();
+            }
+            dropCounter = 0;
+        }
+
+        function playerMove(offset) {
+            const now = Date.now();
+            if (now - lastMoveTime < MOVE_DELAY) return;
+            lastMoveTime = now;
+            player.pos.x += offset;
+            if (collide(arena, player)) {
+                player.pos.x -= offset;
+            }
+        }
+
+        function playerRotateImpl(dir) {
+            const pos = player.pos.x;
+            let offset = 1;
+            rotate(player.matrix, dir);
+            while (collide(arena, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotate(player.matrix, -dir);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        function playerReset() {
+            const pieces = 'ILJOTSZ';
+            if (player.next === null) {
+                player.next = createPiece(pieces[pieces.length * Math.random() | 0]);
+                player.nextLabel = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+                player.nextColor = Math.floor(Math.random() * (COLORS.length - 1)) + 1;
+            }
+            player.matrix = player.next;
+            player.label = player.nextLabel;
+            player.colorIdx = player.nextColor;
+            player.next = createPiece(pieces[pieces.length * Math.random() | 0]);
+            player.nextLabel = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+            player.nextColor = Math.floor(Math.random() * (COLORS.length - 1)) + 1;
+            drawNext();
+            
+            player.pos.y = 0;
+            player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+            
+            if (collide(arena, player)) {
+                gameOver();
+            }
+        }
+
+        function collide(arena, player) {
+            const [m, o] = [player.matrix, player.pos];
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0) {
+                        if (!arena[y + o.y] || 
+                            arena[y + o.y][x + o.x] === undefined || 
+                            arena[y + o.y][x + o.x] !== 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function arenaSweep() {
+            let rowCount = 1;
+            outer: for (let y = arena.length - 1; y > 0; --y) {
+                for (let x = 0; x < arena[y].length; ++x) {
+                    if (arena[y][x] === 0) continue outer;
+                }
+                const row = arena.splice(y, 1)[0].fill(0);
+                arena.unshift(row);
+                ++y;
+                player.score += rowCount * 10;
+                rowCount *= 2;
+            }
+        }
+
+        function update(time = 0) {
+            if (isPaused) return;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) playerDrop();
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function updateScore() {
+            scoreElement.innerText = player.score;
+        }
+
+        function gameOver() {
+            isPaused = true;
+            finalScoreElement.innerText = player.score;
+            overlayTitle.innerText = "GAME OVER";
+            overlayMsg.innerHTML = "לא בושה לפנות<br>לצוות התמיכה ❤️F";
+            scoreDisplay.style.display = 'block';
+            document.querySelector('.btn-start').innerText = "משחק חדש";
+            overlay.classList.remove('hidden');
+        }
+
+        function startGame() {
+            resizeGame();
+            overlay.classList.add('hidden');
+            arena.forEach(row => row.fill(0));
+            player.score = 0;
+            player.next = null;
+            updateScore();
+            lastTime = performance.now();
+            dropCounter = 0;
+            playerReset();
+            isPaused = false;
+            update();
+        }
+
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnDown = document.getElementById('btn-down');
+        const btnRotate = document.getElementById('btn-rotate');
+
+        function addRepeatListener(elem, action) {
+            elem.addEventListener('touchstart', (e) => { e.preventDefault(); action(); }, {passive: false});
+            elem.addEventListener('mousedown', (e) => { e.preventDefault(); action(); });
+        }
+
+        addRepeatListener(btnLeft, () => playerMove(-1));
+        addRepeatListener(btnRight, () => playerMove(1));
+        addRepeatListener(btnRotate, () => playerRotateImpl(1));
+        btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); playerDrop(); }, {passive: false});
+        btnDown.addEventListener('mousedown', (e) => { e.preventDefault(); playerDrop(); });
+
+        window.addEventListener('resize', resizeGame);
+        setTimeout(resizeGame, 100); 
+
+    </script>
+</body>
+</html>
